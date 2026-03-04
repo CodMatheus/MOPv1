@@ -19,33 +19,18 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "chave_secreta_padrao_troque_isso
 # Banco de dados (CORRIGIDO PARA RAILWAY)
 # ---------------------------
 def conectar_banco():
-    """
-    Conecta ao MySQL priorizando as Variáveis de Ambiente do Railway.
-    """
-    # 1. Tenta pegar as configurações do Railway (Variáveis de Ambiente)
-    host = os.getenv('DB_HOST')
-    user = os.getenv('DB_USER')
-    password = os.getenv('DB_PASSWORD')
-    db = os.getenv('DB_NAME')
-    port_str = os.getenv('DB_PORT', '3306')
+    host = os.getenv('MYSQLHOST')
+    user = os.getenv('MYSQLUSER')
+    password = os.getenv('MYSQLPASSWORD')
+    db = os.getenv('MYSQLDATABASE')
+    port = int(os.getenv('MYSQLPORT', 3306))
 
-    # Conversão segura da porta
-    try:
-        port = int(port_str)
-    except ValueError:
-        port = 3306
+    print("🔌 Conectando ao Railway MySQL...")
+    print(f"Host: {host}")
+    print(f"DB: {db}")
 
-    # 2. Diagnóstico no Log (Para você ver se o Railway enviou os dados)
-    # Isso vai aparecer na aba "Deploy Logs" se der erro.
-    print(f"🔌 TENTATIVA DE CONEXÃO:")
-    print(f"   > Host: {host if host else 'NÃO ENCONTRADO (Usando localhost?)'}")
-    print(f"   > User: {user if user else 'NÃO ENCONTRADO'}")
-    print(f"   > DB:   {db if db else 'NÃO ENCONTRADO'}")
-    print(f"   > Port: {port}")
-
-    # 3. Se as variáveis não existirem, aborta para evitar erro de localhost
-    if not host or not user or not password:
-        print("❌ ERRO CRÍTICO: As variáveis de ambiente (DB_HOST, etc) não foram definidas no Railway.")
+    if not host:
+        print("❌ Variáveis MYSQL não encontradas.")
         return None
 
     try:
@@ -55,13 +40,11 @@ def conectar_banco():
             password=password,
             database=db,
             port=port,
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.Cursor,
-            connect_timeout=10
+            charset='utf8mb4'
         )
         return conn
     except Exception as e:
-        print(f"❌ Erro ao conectar no MySQL: {e}")
+        print("❌ Erro ao conectar:", e)
         return None
 
 # ---------------------------
@@ -544,5 +527,6 @@ def setup_banco():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
 
 
